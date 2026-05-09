@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Science Gravity Lab</title>
+    <style>
+        :root {
+            --space: #0b0e14;
+            --accent: #00d4ff;
+        }
+
+        body {
+            background: var(--space);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .lab-container {
+            width: 90%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            text-align: center;
+        }
+
+        #drop-zone {
+            height: 300px;
+            background: linear-gradient(to bottom, #16213e, #0f3460);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 2px solid #1f4068;
+        }
+
+        #ball {
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 30% 30%, #fff, var(--accent));
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--accent);
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button.active {
+            background: var(--accent);
+            color: black;
+            font-weight: bold;
+        }
+
+        .stats {
+            font-family: monospace;
+            background: #000;
+            padding: 10px;
+            border-radius: 8px;
+            color: #0f0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="lab-container">
+    <h2>Gravity Simulator</h2>
+    <p>Select a planet and drop the sphere.</p>
+
+    <div class="controls">
+        <button id="earth" class="active" onclick="setPlanet('EARTH', 9.8)">EARTH</button>
+        <button id="mars" onclick="setPlanet('MARS', 3.7)">MARS</button>
+        <button id="moon" onclick="setPlanet('MOON', 1.6)">MOON</button>
+    </div>
+
+    <div id="drop-zone">
+        <div id="ball"></div>
+    </div>
+
+    <button onclick="startExperiment()" style="width: 100%; font-size: 1.2rem; margin-bottom: 10px;">DROP SPHERE</button>
+
+    <div class="stats">
+        Planet: <span id="p-name">EARTH</span> | G: <span id="p-grav">9.8</span>m/s²<br>
+        Time: <span id="timer">0.00</span>s
+    </div>
+</div>
+
+<script>
+    let gravity = 9.8;
+    let pos = 0;
+    let velocity = 0;
+    let startTime = 0;
+    let isFalling = false;
+    let animationId = null;
+
+    const ball = document.getElementById('ball');
+    const timerDisplay = document.getElementById('timer');
+
+    function setPlanet(name, g) {
+        if(isFalling) return;
+        gravity = g;
+        document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(name.toLowerCase()).classList.add('active');
+        document.getElementById('p-name').innerText = name;
+        document.getElementById('p-grav').innerText = g;
+        resetBall();
+    }
+
+    function resetBall() {
+        pos = 0;
+        velocity = 0;
+        ball.style.top = '0px';
+        timerDisplay.innerText = "0.00";
+    }
+
+    function startExperiment() {
+        if(isFalling) return;
+        resetBall();
+        isFalling = true;
+        startTime = performance.now();
+        animate();
+    }
+
+    function animate() {
+        const dropHeight = 270; // Height of container minus ball size
+        
+        // Physics logic: Velocity increases by gravity over time
+        // We use a small multiplier (0.01) to make the simulation fit the screen height
+        velocity += (gravity * 0.015); 
+        pos += velocity;
+
+        if (pos >= dropHeight) {
+            pos = dropHeight;
+            isFalling = false;
+            cancelAnimationFrame(animationId);
+        } else {
+            const currentTime = ((performance.now() - startTime) / 1000).toFixed(2);
+            timerDisplay.innerText = currentTime;
+            animationId = requestAnimationFrame(animate);
+        }
+
+        ball.style.top = pos + 'px';
+    }
+</script>
+
+</body>
+</html>
